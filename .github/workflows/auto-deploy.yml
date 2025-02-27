@@ -67,7 +67,8 @@ jobs:
 
       - name: Deploy to production
         run: |
-          CHANGED_PROJECTS=$(./bin/projects_changed_bw_commits.sh "${{ env.NX_BASE }}" "${{ env.NX_HEAD }}")
+          CHANGED_PROJECTS="react flask laravel vue vite"
+          # CHANGED_PROJECTS=$(./bin/projects_changed_bw_commits.sh "${{ env.NX_BASE }}" "${{ env.NX_HEAD }}")
           if [[ ! -z "$CHANGED_PROJECTS" ]]; then
             ./deploy.sh $CHANGED_PROJECTS --env=production
           elif [[ `./bin/release.sh` != `./bin/release.sh 1` ]]; then # different release than yesterday
