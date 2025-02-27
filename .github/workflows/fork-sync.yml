@@ -22,6 +22,7 @@ jobs:
           target_sync_branch: master
           upstream_sync_branch: master
           upstream_sync_repo: sentry-demos/empower
+          git_pull_rebase_config: "true"
 
       - name: Timestamp
         run: date
