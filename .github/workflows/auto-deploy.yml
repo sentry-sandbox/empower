@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - "master"
+  schedule:
+    - cron: "50 11 * * *"
+    # see https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
   workflow_dispatch:
 
 # Only run 1 workflow at a time. If new one starts abort any that are already running.
