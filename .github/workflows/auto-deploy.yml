@@ -32,7 +32,7 @@ jobs:
       - name: Check out `empower-config` to get env-config
         uses: actions/checkout@v3
         with:
-          repository: sentry-demos/empower-config
+          repository: sentry-sandbox/empower-config
           path: empower-config
           token: ${{ secrets.OGI_PERSONAL_ACCESS_TOKEN_FOR_SYNC_DEPLOY_FORK }}
 
