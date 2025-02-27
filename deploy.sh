@@ -73,11 +73,6 @@ if [[ "$env" == "" || "$projects" == "" ]]; then
   exit 1
 fi
 
-if [ "$env" == "production" ]; then
-  if [ -t 0 ] ; then # shell is interactive
-    verify_latest_code.sh
-  fi
-fi
 
 # Re-order so backends are launched first
 be_projects=""
@@ -156,17 +151,6 @@ for proj in $projects; do # bash only
     done
   fi
 
-  CLOUD_SQL_AUTH_PROXY=172.17.0.1
-  if [ "$env" != "local" ]; then
-    if [ "$proj" == "aspnetcore" ]; then
-      # https://cloud.google.com/sql/docs/postgres/connect-app-engine-flexible
-      export DB_HOST="$CLOUD_SQL_AUTH_PROXY"
-    elif [ "$proj" == "laravel" ]; then
-      # https://cloud.google.com/sql/docs/postgres/connect-app-engine-standard#php
-      export DB_HOST="pgsql:dbname=$DB_DATABASE;host=/cloudsql/$DB_CLOUD_SQL_CONNECTION_NAME/"
-    fi
-  fi
-
   unset CI # prevents build failing in GitHub Actions
   ./build.sh
 
@@ -178,13 +162,6 @@ for proj in $projects; do # bash only
     fi
     sentry-release.sh $env $RELEASE $upload_sourcemaps
     # NOTE: Sentry may create releases from events even without this step
-  fi
-
-  # If gcloud is installed, use it to get the sentry auth token from Google Cloud Secret Manager.
-  # Sentry CLI will use this token for authentication.  Otherwise, one can use `sentry-cli login`,
-  # but that will not work when deploying to staging or production.
-  if command -v gcloud &> /dev/null ; then
-    export SENTRY_AUTH_TOKEN=$(gcloud secrets versions access latest --secret="SENTRY_AUTH_TOKEN")
   fi
 
   # *** DEPLOY OR RUN ***
@@ -209,34 +186,9 @@ for proj in $projects; do # bash only
         exit 1
       fi
     fi
-  elif [ -f deploy_project.sh ]; then
-    if [[ "$proj" =~ ^crons- ]]; then
-      . get_proj_var.sh "%s_DEPLOY_DIR" $proj
-      escaped_deploy_dir=$(echo "$deploy_dir" | sed 's_/_\\/_g')
-      sed -e 's/<CRONSPYTHON_DEPLOY_DIR>/'$escaped_deploy_dir'/g' crontab.template > crontab 
-    fi
-    ./deploy_project.sh
   else
+    echo "$0 [ERROR]: No deploy_project.sh script found for $proj"
 
-    # Replace ${SERVICE} in app.yaml.template with <PROJECT>_APP_ENGINE_SERVICE
-    . get_proj_var.sh "%s_APP_ENGINE_SERVICE" $proj
-
-    if [ "$proj" == "spring-boot" ]; then
-      ypath="./src/main/appengine/"
-      SERVICE=$app_engine_service SPRINGBOOT_ENV="production" envsubst.sh < $ypath/app.yaml.template > $ypath/app.yaml
-      mvn clean package appengine:deploy
-    elif [ "$proj" == "aspnetcore" ]; then
-      # TODO: envsubst is super easy - this should be the default for all projects
-      envsubst.sh < app.yaml.template > .app.yaml
-      envsubst.sh < Dockerfile.template > Dockerfile
-      gcloud app deploy --version v1 --quiet .app.yaml
-      rm Dockerfile
-    else
-      # all other projects
-      SERVICE=$app_engine_service envsubst.sh < app.yaml.template > .app.yaml
-      cat .app.yaml
-      gcloud app deploy --version v1 --quiet .app.yaml
-    fi
   fi
 done
 

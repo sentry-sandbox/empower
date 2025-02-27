@@ -1,0 +1,27 @@
+on:
+  schedule:
+    - cron: "0 * * * *"
+    # runs every hour
+  workflow_dispatch:
+
+jobs:
+  sync_with_upstream:
+    runs-on: ubuntu-latest
+    name: Sync master with upstream latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Pull upstream changes
+        id: sync
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.1
+        with:
+          target_sync_branch: master
+          upstream_sync_branch: master
+          upstream_sync_repo: sentry-demos/empower
+
+      - name: Timestamp
+        run: date
