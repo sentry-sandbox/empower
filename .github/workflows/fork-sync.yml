@@ -1,3 +1,5 @@
+name: fork-sync.yml
+
 on:
   schedule:
     - cron: "0 * * * *"
@@ -23,6 +25,7 @@ jobs:
           upstream_sync_branch: master
           upstream_sync_repo: sentry-demos/empower
           git_pull_rebase_config: "true"
+          git_pull_args: "--allow-unrelated-histories"
 
       - name: Timestamp
         run: date
