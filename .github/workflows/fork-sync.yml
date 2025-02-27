@@ -12,20 +12,8 @@ jobs:
     name: Sync master with upstream latest
 
     steps:
-      - name: Checkout master
-        uses: actions/checkout@v2
+      - uses: tgymnich/fork-sync@v1.8
         with:
-          ref: master
-
-      - name: Pull upstream changes
-        id: sync
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.1
-        with:
-          target_sync_branch: master
-          upstream_sync_branch: master
-          upstream_sync_repo: sentry-demos/empower
-          git_pull_rebase_config: "true"
-          git_pull_args: "--allow-unrelated-histories"
-
-      - name: Timestamp
-        run: date
+          # owner: sentry-sandbox
+          base: master
+          head: master
